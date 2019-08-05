@@ -1,24 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
+import React,{useState} from 'react';
+import {confirmAlert} from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 import './App.css';
+import Game from './containers/Game/Game';
 
-function App() {
+
+const App=()=>{
+  const [level,setLevel] = useState(null); 
+  let content;
+  if(level===null) {
+  	confirmAlert({
+            title: '',
+            message: 'Select a level',
+            buttons: [
+            {
+               label: 'Easy',
+               onClick: () => setLevel(0)
+            },
+            {
+               label: 'Medium',
+               onClick: () => setLevel(1)
+            },{
+
+               label: 'Hard',
+               onClick: () => setLevel(2)
+            }
+           ]
+        });
+  } else {
+  	content = <Game level={level} restart={()=>setLevel(null)}/>
+  }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='Title'>
+    <h2 className='TitleHeader'>MINESWEEPER</h2>
+    </div>
+    {content}
     </div>
   );
 }
