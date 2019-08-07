@@ -40,7 +40,7 @@ class Game extends Component {
 			mines: mines,
 			started: false,
 			identifiedMines: 0,
-			identifiedNumbers: 0,
+			identifiedNumbers: {nums: 0},
 			timer: {
 				minutes: 0,
 				seconds: 0,
@@ -86,16 +86,13 @@ class Game extends Component {
 		this.setState({
 			started: false,
 			identifiedMines: 0,
-			identifiedNumbers: 0,
+			identifiedNumbers: {nums: 0},
 			timer: {
 				minutes: 0,
 				seconds: 0,
 			},
 			boxState : arr
 		});
-	}
-
-	componentDidUpdate=(prevProps,prevState)=> {
 	}
 
 	setBoxState=(xpos,ypos)=> {
@@ -156,7 +153,7 @@ class Game extends Component {
 	  let i=0, j=0;
 	  if((element!=='X')&&(element!==0)) {
           arr[x][y].showData=element;
-          ++numbers;
+          ++numbers.nums;
 	  } else if(element==='X') {
 	  	 clearInterval(this.counter);
          for(i=0;i<this.state.boxes;i++) {
@@ -181,7 +178,7 @@ class Game extends Component {
         });
 	  }
 	  else{
-        this.openEmptyCells(arr,x,y);
+        this.openEmptyCells(arr,x,y,numbers);
 	  }
 	  this.setState({
 	  	identifiedNumbers: numbers,
@@ -189,12 +186,14 @@ class Game extends Component {
 	  });
 	}
 
-	openEmptyCells=(arr,x,y)=> {
-		if((arr[x][y].data!=='X')&&(arr[x][y].data!==0)) {
+	openEmptyCells=(arr,x,y,numbrs)=> {
+		if((arr[x][y].data!=='X')&&(arr[x][y].data!==0)&&(arr[x][y].showData==='')) {
 			arr[x][y].showData = arr[x][y].data;
+			++numbrs.nums;
 			return true;
 		} else if((arr[x][y].data===0)&&(arr[x][y].showData!==' ')){
 			arr[x][y].showData = ' ';
+			++numbrs.nums;
             let i=0,j=0;
 		    let xarr = [x], yarr=[y];
 		    if(x-1>=0) {
@@ -216,7 +215,7 @@ class Game extends Component {
                     continue;
                  }
                  else{
-					this.openEmptyCells(arr,xarr[i],yarr[j]);
+					this.openEmptyCells(arr,xarr[i],yarr[j],numbrs);
 				}
 			  }
 		    }
@@ -245,8 +244,8 @@ class Game extends Component {
     	return <button className='ButtonCells' onClick={()=>this.setBoxState(x,y)}></button>;
     }
 
-	showButtons=(x,y,data)=> {
-		return <button className='ButtonCells' onClick={()=>this.clickHandler(x,y)} onContextMenu={(event)=>this.flagHandler(event,x,y)}>{data}</button>;
+	showButtons=(x,y,data,buttonstyle)=> {
+		return <button style={buttonstyle} className='ButtonCells' onClick={()=>this.clickHandler(x,y)} onContextMenu={(event)=>this.flagHandler(event,x,y)}>{data}</button>;
 	}
 
 
@@ -254,7 +253,7 @@ class Game extends Component {
 	let boxes = this.state.boxes*this.state.boxes;
 	let mines = this.state.mines;
 	let minesFound = this.state.identifiedMines;
-	let numbersFound = this.state.identifiedNumbers;
+	let numbersFound = this.state.identifiedNumbers.nums;
 	let timer = null;
 	let cellstyle=null;
 	   let min = this.state.timer.minutes;
@@ -266,7 +265,8 @@ class Game extends Component {
           min = '0'+min;
 	   }
 	 timer = <span className='Timer'>{min} : {sec}</span>;
-	if((numbersFound===boxes-mines)||(minesFound===mines)){
+	 if(this.state.started){
+        if((numbersFound===boxes-mines)||(minesFound===mines)){
 		clearInterval(this.counter);
 		confirmAlert({
             title: 'Congratulations! You have won!',
@@ -281,26 +281,38 @@ class Game extends Component {
             }
            ]
         });
-	}
+	  }
+	 }
 	   let tablerows = [], tablecells = [];
 	   let cell = null;
 	   let i=0,j=0;
 	   let showFlag = <img src={flag} alt='F' width='100%' height='100%' />;
+	   let buttonstyle=null;
 	   for(i=0;i<this.state.boxes;i++) {
 	   	tablecells = [];
 	   	for(j=0;j<this.state.boxes;j++) {
+	   	    buttonstyle=null;
+	   	    cellstyle=null;
 	   		if(this.state.started===false) {
 	   			cell = this.showInitialButtons(i,j);
 	   		}
 	   		else if(this.state.boxState[i][j].showData===''){
-	   			cell = this.showButtons(i,j,this.state.boxState[i][j].showData);
+	   			cell = this.showButtons(i,j,this.state.boxState[i][j].showData,buttonstyle);
 	   		} 
             else if(this.state.boxState[i][j].showData==='F') {
-            	cell = this.showButtons(i,j,showFlag);
+            	buttonstyle={
+            		backgroundColor: '#DFDFDF'
+            	};
+            	cell = this.showButtons(i,j,showFlag,buttonstyle);
             }
 	   		else {
+	   			if(this.state.boxState[i][j].data==='X') {
+	   				cellstyle = {
+	   					backgroundColor : 'white'
+	   				};
+	   			}
 	   			cell = this.state.boxState[i][j].showData;
-	   		}
+	   		} 
            tablecells.push(<td className='cells' style={cellstyle}>{cell}</td>);
 	   	}
 	   	tablerows.push(
